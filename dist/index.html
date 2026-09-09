@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#243b49"><title>你认识我的时候，我才15岁</title><meta name="description" content="从清晨睁眼到深夜合眼，在纪中自由走过一天。"><link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script></head>
+<body>
+<main id="game" aria-label="纪中校园漫游" tabindex="0">
+ <div id="outdoor"><div id="camera"><div id="worldArt" aria-label="纪中校园矢量地图"></div><div id="worldMarkers"></div><div id="npcs"></div><div id="player" class="actor"><img src="assets/front.svg" alt="蓝白校服学生"></div></div></div>
+ <div id="indoor" hidden><div id="room"><img id="roomArt" alt="校园室内场景"><div id="roomMarkers"></div><div id="roomPlayer" class="room-actor"><img src="assets/front.svg" alt="蓝白校服学生"></div></div></div>
+ <canvas id="atmosphere" aria-hidden="true"></canvas><div id="dayTint" aria-hidden="true"></div><div class="vignette" aria-hidden="true"></div>
+ <section id="bedView" hidden aria-label="躺在宿舍床上"><img src="assets/morning.svg" alt="睁眼望见宿舍天花板与吊扇"><div><p>05:50</p><span>起床铃还没有响。</span><button id="getUp">掀开被子，起床 <kbd>E</kbd></button></div></section>
+ <header id="hud" hidden><div class="time"><span id="phaseIcon">☀</span><div><span id="phase">清晨</span><small id="location">女生一区</small></div></div><div class="map-corner"><button id="miniButton" aria-label="展开校园地图（M）"><svg id="minimap" viewBox="0 0 1080 1476" aria-hidden="true"></svg><span class="north">北 N</span><span class="map-caption">纪中 <kbd>M</kbd></span></button><div class="tools"><button id="followButton" aria-label="镜头回到人物（空格）" title="回到人物 · 空格">◎</button><button id="soundButton" aria-label="关闭环境音" aria-pressed="true" title="环境音">♫</button><button id="helpButton" aria-label="操作说明">?</button></div></div></header>
+ <div id="cameraHint" hidden>正在环顾校园 <button id="returnCamera">回到我这里 <kbd>空格</kbd></button></div>
+ <button id="action" hidden><kbd>E</kbd> <span></span></button>
+ <div id="toast" role="status" aria-live="polite"></div>
+ <div id="touchControls" hidden><div class="dpad"><button data-key="ArrowUp" aria-label="向上走">↑</button><button data-key="ArrowLeft" aria-label="向左走">←</button><button data-key="ArrowDown" aria-label="向下走">↓</button><button data-key="ArrowRight" aria-label="向右走">→</button></div><button id="touchAction">E</button></div>
+ <footer id="hint" hidden><span><kbd>W A S D</kbd> 行走</span><span>拖动 · 环顾</span><span><kbd>E</kbd> 互动</span></footer>
+ <section id="startScreen" class="start"><img src="assets/morning.svg" alt="宿舍床上望见的吊扇"><div class="start-copy"><p>我又梦到你了，纪中。</p><h1>你认识我的时候<br>我才15岁</h1><button id="startButton">睁开眼睛 <span>→</span></button><small id="loadingText">清晨的校园正在苏醒……</small></div></section>
+ <section id="film" hidden><video id="video" playsinline preload="none" src="assets/opening.mp4"></video><button id="skipFilm">长按跳过片头 <span id="skipProgress"></span></button></section>
+ <div id="eyelids" class="closed" aria-hidden="true"><div></div><div></div><p id="sleepText"></p></div>
+</main>
+<dialog id="dialog" aria-labelledby="dialogTitle"><div class="dialog-head"><span id="dialogTag">校园片段</span><button data-close aria-label="关闭">×</button></div><div class="dialog-body"><img id="portrait" src="assets/front.svg" alt=""><div><h2 id="dialogTitle"></h2><p id="dialogText"></p><small id="dialogSource"></small></div></div><img id="detailArt" hidden alt="物件近景"><div id="choices"></div></dialog>
+<dialog id="mapDialog" aria-labelledby="mapTitle"><header><div><small>中山纪念中学</small><h2 id="mapTitle">走过的地方</h2></div><button data-close aria-label="关闭地图">×</button></header><div class="map-layout"><div id="bigMapWrap"><svg id="bigMap" viewBox="0 0 1080 1476" aria-label="校园地图，点击查看该处"></svg></div><div class="map-legend"><p>点击地图，把目光移到那里。</p><p>你仍然站在原地。</p><div id="mapPlaces"></div><small>亮点是你的位置。<br>标记显示已经进入过的建筑。</small></div></div></dialog>
+<dialog id="helpDialog" aria-labelledby="helpTitle"><header><h2 id="helpTitle">慢慢走，不用赶。</h2><button data-close aria-label="关闭说明">×</button></header><dl><dt>WASD / 方向键</dt><dd>操控学生行走</dd><dt>鼠标拖动 / 滚轮</dt><dd>环顾整座校园 / 调整距离</dd><dt>空格</dt><dd>让镜头回到学生身边</dd><dt>E / 点击物件</dt><dd>进入建筑，看看身边的小东西</dd><dt>M</dt><dd>展开右上角的校园地图</dd><dt>Esc</dt><dd>关闭文字或地图</dd></dl><p>饭堂和教学楼的进出推动一天。可以绕路，也可以跳过。夜晚回宿舍，洗漱、查寝，然后睡去。</p><small>第二版 · 可玩草稿。文字取自《最坏的时光》，另含日常场景补写。部分建筑外观、室内格局和行走动画仍待校准。</small></dialog>
+<link rel="stylesheet" href="refinements.css">
+</body></html>

@@ -1,0 +1,56 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import * as world from '../dist/world-data.js';
+const require=createRequire(import.meta.url);
+const {JSDOM}=require(process.env.JZ_TEST_DEPS||'/workspace/scratch/c28f93341fd5/qa-deps/node_modules/jsdom');
+const root=new URL('../dist/',import.meta.url);
+const html=fs.readFileSync(new URL('index.html',root),'utf8');
+const dom=new JSDOM(html,{url:'https://example.test/',runScripts:'outside-only',pretendToBeVisual:true});
+const w=dom.window,timers=[];
+w.setTimeout=(fn,ms)=>{timers.push({fn,ms});return timers.length};w.clearTimeout=()=>{};
+w.requestAnimationFrame=()=>{};w.matchMedia=()=>({matches:false});
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true};
+w.HTMLDialogElement.prototype.close=function(){this.open=false};
+w.HTMLMediaElement.prototype.pause=()=>{};
+w.HTMLCanvasElement.prototype.getContext=()=>({setTransform(){},clearRect(){},fillRect(){}});
+w.Image=class{set src(v){this.onload?.()}};
+w.fetch=async path=>({ok:true,text:async()=>fs.readFileSync(new URL(path,root),'utf8')});
+Object.assign(w,world);
+const js=fs.readFileSync(new URL('app.js',root),'utf8').replace(/^import .*?;\n/,'');
+w.eval(js+'\nwindow.testAPI={s,enter,exitRoom,phase,wake,sleep,bed,roomConfig,indoorBlocked,follow,frame,keys};');
+const a=w.testAPI,find=id=>world.buildings.find(b=>b[0]===id);
+a.wake();assert.equal(a.s.room,'dorm');assert.equal(a.s.inBed,true);
+w.document.getElementById('getUp').click();assert.equal(a.s.inBed,false);
+a.exitRoom();assert.equal(a.s.room,null);assert.equal(world.blocked(a.s.p.x,a.s.p.y),false);
+const route=[['canteen2',0,0],['class1',1,1],['canteen2',2,2],['class1',3,3],['canteen2',3,4],['class1',5,5]];
+for(const [id,inside,outside]of route){a.enter(find(id));assert.equal(a.s.phase,inside,id+' entering');a.exitRoom();assert.equal(a.s.phase,outside,id+' leaving')}
+assert.equal(a.s.visits.canteen,3);assert.equal(a.s.visits.class,3);
+a.phase(2);assert.equal(a.s.phase,5,'day never regresses');
+a.enter(find('dorm'));a.s.washed=true;a.s.checked=true;a.sleep();
+assert.equal(a.s.sleeping,true);assert(timers.some(t=>t.ms===32200),'30 seconds after 2.2-second eyelid close');
+timers.findLast(t=>t.ms===32200).fn();
+assert.equal(a.s.phase,0);assert.equal(a.s.inBed,true);assert.equal(a.s.visits.class,0);assert.equal(a.s.visits.canteen,0);assert.equal(a.s.sleeping,false);
+a.s.washed=true;a.phase(5);assert.equal(a.s.washed,false,'night requires a new wash');
+a.s.cam.follow=false;a.follow();assert.equal(a.s.cam.follow,true);
+// Collision grid checks: every interactive door must be reachable from the starting dorm.
+const step=3,cols=361,rows=493,seen=new Uint8Array(cols*rows),pass=new Uint8Array(cols*rows);
+for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)pass[y*cols+x]=!world.blocked(x*step,y*step);
+let start=Math.round(376/step)*cols+Math.round(317/step),queue=[start];seen[start]=1;
+for(let i=0;i<queue.length;i++){let n=queue[i],x=n%cols,y=Math.floor(n/cols);for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){let xx=x+dx,yy=y+dy,k=yy*cols+xx;if(xx>=0&&xx<cols&&yy>=0&&yy<rows&&pass[k]&&!seen[k]){seen[k]=1;queue.push(k)}}}
+for(const b of world.buildings.filter(world.kindFor)){const x=b[2]+b[4]/2,y=b[3]+b[5]+9;assert(!world.blocked(x,y),b[1]+' exit blocked');assert(seen[Math.round(y/step)*cols+Math.round(x/step)],b[1]+' unreachable')}
+for(const file of ['app.js','style.css','refinements.css','world-data.js','assets/front.svg','assets/back.svg','assets/side.svg','assets/world.svg','assets/dorm.svg','assets/canteen.svg','assets/class.svg','assets/morning.svg','assets/desk.svg','assets/opening.mp4'])assert(fs.existsSync(new URL(file,root)),file+' exists');
+for(const name of fs.readdirSync(new URL('assets/',root)).filter(n=>n.endsWith('.svg'))){const svg=fs.readFileSync(new URL('assets/'+name,root),'utf8');assert(/viewBox=/.test(svg),name+' scalable viewport');assert(!/<image\b/.test(svg),name+' has no embedded raster');assert(!/NaN|undefined/.test(svg),name+' valid coordinates')}
+// Exercise actual input handlers without a browser or a running web server.
+w.document.getElementById('getUp').click();a.exitRoom();
+let initialX=a.s.p.x;a.keys.add('d');a.frame(w.performance.now()+40);a.keys.clear();assert(a.s.p.x>initialX,'keyboard moves original actor');
+let playerX=a.s.p.x,playerY=a.s.p.y,camX=a.s.cam.x;
+const game=w.document.getElementById('game');game.setPointerCapture=()=>{};
+game.dispatchEvent(new w.MouseEvent('pointerdown',{clientX:600,clientY:400,bubbles:true}));
+game.dispatchEvent(new w.MouseEvent('pointermove',{clientX:750,clientY:400,bubbles:true}));
+game.dispatchEvent(new w.MouseEvent('pointerup',{bubbles:true}));
+assert.equal(a.s.p.x,playerX);assert.equal(a.s.p.y,playerY);assert.notEqual(a.s.cam.x,camX);assert.equal(a.s.cam.follow,false);
+await new Promise(setImmediate);
+assert.equal(w.document.getElementById('startButton').disabled,false,'preload completes');
+console.log('PASS: startup from bed; six visits; monotonic time; night routine reset; 30-second sleep; keyboard movement; stationary-player camera drag; recenter; '+world.buildings.filter(world.kindFor).length+' reachable entrances; complete local assets; true SVG paths.');
+dom.window.close();
