@@ -89,6 +89,7 @@ export const placeSpots=[
 ];
 export const phases=['清晨','上午','正午','下午','傍晚','夜晚'];
 export function entryPhase(kind,count){return kind==='canteen'?[0,2,4][Math.min(count,3)-1]:kind==='class'?[1,3,5][Math.min(count,3)-1]:null}
-export function kindFor(b){return b[0].startsWith('canteen')?'canteen':b[0].startsWith('class')||b[0]==='junior'||b[0]==='science3'||b[0]==='arts3'?'class':b[5]&&b[7]==='dorm'||b[0].startsWith('boys')?'dorm':null}
+export function kindFor(b){return b[0]==='library'?'library':b[0].startsWith('canteen')?'canteen':b[0].startsWith('class')||b[0]==='junior'||b[0]==='science3'||b[0]==='arts3'?'class':b[5]&&b[7]==='dorm'||b[0].startsWith('boys')?'dorm':null}
 export function inPolygon(x,y,points){let inside=false; for(let i=0,j=points.length-1;i<points.length;j=i++){let a=points[i],b=points[j];if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))inside=!inside;}return inside;}
-export function blocked(x,y){if(!inPolygon(x,y,campusBoundary))return true; if(lakes.some(l=>inPolygon(x,y,l.points))&&!((x>500&&x<518&&y>967&&y<1090)))return true;return buildings.some(b=>x>b[2]-1&&x<b[2]+b[4]+1&&y>b[3]-2&&y<b[3]+b[5]+1)||trees.some(t=>(x-t[0])**2+(y-t[1]+2)**2<2.2);}
+const treeCells=new Map();for(const t of trees){const key=Math.floor(t[0]/24)+','+Math.floor(t[1]/24);if(!treeCells.has(key))treeCells.set(key,[]);treeCells.get(key).push(t)}
+export function blocked(x,y){if(!inPolygon(x,y,campusBoundary))return true;if(lakes.some(l=>inPolygon(x,y,l.points))&&!(x>500&&x<518&&y>967&&y<1090))return true;if(buildings.some(b=>x>b[2]-1&&x<b[2]+b[4]+1&&y>b[3]-2&&y<b[3]+b[5]+1))return true;const cx=Math.floor(x/24),cy=Math.floor(y/24);for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++)if((treeCells.get((cx+i)+','+(cy+j))||[]).some(t=>(x-t[0])**2+(y-t[1]+2)**2<2.2))return true;return false}

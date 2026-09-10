@@ -27,6 +27,10 @@ for(let i=0;i<6;i++)svg+=`<rect x="${779+i*3}" y="${1028+i*3}" width="${137-i*6}
 svg+=rect(805,1076,85,167,'#7b9c89','#c3ceba',.8)+path('M805 1159H890M826 1076v25h43v-25M826 1243v-25h43v25','none','#dce1ce',.6)+`<circle cx="847.5" cy="1159" r="19" fill="none" stroke="#dce1ce" stroke-width=".6"/>`;
 svg+=rect(390,372,91,68,'url(#paving)','#859795',1)+rect(451,744,70,69,'url(#paving)','#859795',1);
 for(let i=0;i<6;i++)svg+=path(`M397 ${377+i*2}H475`,'none','#6a8184',.5);
+// V3: keep editable vector art but render independent, culled layers at runtime.
+fs.mkdirSync(new URL('layers/',out),{recursive:true});
+const ground=svg.replace(/<defs><symbol id="tree"[\s\S]*?<\/symbol><\/defs>/,'');
+fs.writeFileSync(new URL('layers/ground.svg',out),ground.replace('width="8640" height="11808"','width="4320" height="5904"')+'</svg>');
 // Trees are original-style traced assets, stored as an SVG symbol.
 const nearRoad=(x,y)=>roads.some(ps=>ps.some((p,i)=>{if(!i)return false;const a=ps[i-1],dx=p[0]-a[0],dy=p[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)<12;}));
 const inside=(x,y)=>{let q=false;for(let i=0,j=campusBoundary.length-1;i<campusBoundary.length;j=i++){let a=campusBoundary[i],b=campusBoundary[j];if((a[1]>y)!=(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])q=!q;}return q;};
@@ -61,7 +65,7 @@ function building(b){let[id,name,x,y,w,h,floors,style]=b;
  if(style==='dorm')for(let j=0;j<3;j++){let yy=roofh+3+j*(dep-3)/3;s+=path(`M1 ${yy}H${w-1}M1 ${yy+.6}H${w-1}`,'none','#d0d7cb',.25);for(let i=2;i<w;i+=3)s+=path(`M${i} ${yy-.6}v1.4`,'none','#324c5d',.22);}
  for(let i=0;i<w/15;i++)s+=path(`M${2+i*15} ${roofh+.5}V${h-1}`,'none','#c5cfc9',.5);
  s+=rect(w/2-3,h-5,6,5,'#334b57','#273f4c',.5)+path(`M${w/2} ${h-5}v5`,'none','#a2b3b5',.25);for(let i=0;i<3;i++)s+=rect(w/2-5-i*.4,h+i*.7,10+i*.8,.8,'#bbc4bf','#6a8388',.2);s+='</g>';return s;}
-for(const b of buildings)objects.push({y:b[3]+b[5],text:building(b)});
+for(const b of buildings){const art=building(b);objects.push({y:b[3]+b[5],text:art});fs.writeFileSync(new URL('layers/'+b[0]+'.svg',out),`<svg xmlns="http://www.w3.org/2000/svg" width="${(b[4]+16)*8}" height="${(b[5]+16)*8}" viewBox="${b[2]-8} ${b[3]-8} ${b[4]+16} ${b[5]+16}">${defs}${art}</svg>`)}
 objects.sort((a,b)=>a.y-b.y);svg+=objects.map(o=>o.text).join('');
 // Benches and lamps enrich roads without obstructing the walking surface.
 for(let i=0;i<roads.length;i++){const ps=roads[i];for(let j=1;j<ps.length;j++){let a=ps[j-1],b=ps[j],dist=Math.hypot(a[0]-b[0],a[1]-b[1]);for(let k=15;k<dist;k+=26){let t=k/dist,x=a[0]+(b[0]-a[0])*t+10,y=a[1]+(b[1]-a[1])*t;if(buildings.some(v=>x>v[2]&&x<v[2]+v[4]&&y>v[3]&&y<v[3]+v[5]))continue;svg+=`<g stroke="#354e5a" stroke-width=".6"><path d="M${x} ${y}v-6h2" fill="none"/><rect x="${x+1}" y="${y-7}" width="2" height="1.5" fill="#d2d2af"/></g>`;if(k%52===15)svg+=rect(x+3,y,6,2,'#829494','#3f5965',.3);}}}

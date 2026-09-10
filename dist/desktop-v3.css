@@ -1,0 +1,13 @@
+#worldArt,#worldMarkers,#npcs,#player{display:none!important}
+#loadProgress{display:block;width:280px;height:6px;margin-top:22px;accent-color:#b5cbd2;border:0}
+#loadProgress::-webkit-progress-bar{background:#36525d}#loadProgress::-webkit-progress-value{background:#bfd8dd}
+#retryLoad{margin-top:14px;min-width:0;font-size:14px;padding:10px}
+.sprite-actor{background-image:url('assets/walk.png');background-size:800% 800%;background-repeat:no-repeat;aspect-ratio:1;filter:drop-shadow(0 3px 2px #243a4b33)}
+.sprite-actor img{visibility:hidden;animation:none!important}
+#roomPlayer{width:7%;height:auto;aspect-ratio:1;translate:-50% -93%;z-index:2}
+#roomMarkers{z-index:3;pointer-events:none}.room-marker{pointer-events:auto}
+#hint{font-size:14px;gap:20px}#hint kbd{font-size:14px}.time small{font-size:14px}
+#atmosphere{z-index:1}#dayTint{z-index:2}.vignette{z-index:2}#hud,#hint,#action,#cameraHint,#toast{z-index:5}#bedView{z-index:8}
+#roomArt{object-fit:contain}#room{aspect-ratio:1672/941;width:min(100vw,177.68vh,1672px)}
+#minimap .map-player circle:first-child{r:19;fill:#fff2a8}#minimap .map-player circle:last-child{r:30;stroke-width:5}
+@media(min-width:760px){#touchControls,#mobileGuide{display:none!important}}
