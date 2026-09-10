@@ -1,0 +1,12 @@
+{
+  "name": "jizhong-desktop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "test": "node scripts/test.mjs && node scripts/test-v3.mjs"
+  },
+  "devDependencies": {
+    "vite": "^8.2.2"
+  }
+}

@@ -1,13 +1,20 @@
 #worldArt,#worldMarkers,#npcs,#player{display:none!important}
+#game{position:fixed;inset:0;width:100vw;height:100dvh;overflow:clip}
+#hud{position:absolute;inset:0}
+#diagnostics{position:fixed;left:12px;bottom:12px;z-index:100;background:#102939e8;color:#eaf6f0;padding:8px;font:12px monospace;pointer-events:none}
 #loadProgress{display:block;width:280px;height:6px;margin-top:22px;accent-color:#b5cbd2;border:0}
 #loadProgress::-webkit-progress-bar{background:#36525d}#loadProgress::-webkit-progress-value{background:#bfd8dd}
 #retryLoad{margin-top:14px;min-width:0;font-size:14px;padding:10px}
 .sprite-actor{background-image:url('assets/walk.png');background-size:800% 800%;background-repeat:no-repeat;aspect-ratio:1;filter:drop-shadow(0 3px 2px #243a4b33)}
 .sprite-actor img{visibility:hidden;animation:none!important}
 #roomPlayer{width:7%;height:auto;aspect-ratio:1;translate:-50% -93%;z-index:2}
+#roomPlayer::before{content:'';position:absolute;left:32%;bottom:3%;width:36%;height:10%;border-radius:50%;background:#223c4d35;z-index:-1}
 #roomMarkers{z-index:3;pointer-events:none}.room-marker{pointer-events:auto}
 #hint{font-size:14px;gap:20px}#hint kbd{font-size:14px}.time small{font-size:14px}
 #atmosphere{z-index:1}#dayTint{z-index:2}.vignette{z-index:2}#hud,#hint,#action,#cameraHint,#toast{z-index:5}#bedView{z-index:8}
-#roomArt{object-fit:contain}#room{aspect-ratio:1672/941;width:min(100vw,177.68vh,1672px)}
+#roomArt{object-fit:contain}#room{aspect-ratio:1672/941;width:min(100vw,177.68vh)}
+#roomForeground{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+#roomMarkers{z-index:4}
+#sceneLoading{position:absolute;inset:0;display:grid;place-items:center;z-index:8;background:#203343e8;color:#e1e8e0;font-size:16px}
 #minimap .map-player circle:first-child{r:19;fill:#fff2a8}#minimap .map-player circle:last-child{r:30;stroke-width:5}
 @media(min-width:760px){#touchControls,#mobileGuide{display:none!important}}
