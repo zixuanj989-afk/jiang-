@@ -3,7 +3,7 @@ const $=s=>document.getElementById(s),el=(t,c)=>{let e=document.createElement(t)
 const dorm=buildings.find(b=>b[0]==='dorm');
 const s={started:false,phase:0,room:null,building:dorm,p:{x:317,y:376,dir:'front'},rp:{x:50,y:70},cam:{x:317,y:376,follow:true},zoom:1,visits:{canteen:0,class:0},visited:new Set(),washed:false,checked:false,sleeping:false,muted:false};
 const keys=new Set(),source='《最坏的时光》 · 原文摘意',added='校园日常 · 场景补写';
-let near=null,drag=null,last=performance.now(),tick=0,toastTimer,stepTime=0,skipTimer,skipTime,roomSpots=[];
+let near=null,drag=null,last=performance.now(),tick=0,toastTimer,stepTime=0,roomSpots=[];
 let ac,master,lastLight=-1;
 function syncWorldLight(){const root=$('worldArt').querySelector('svg');if(!root)return;root.classList.toggle('night',s.phase===5);root.classList.toggle('dusk',s.phase===4);lastLight=s.phase}
 const tones=['#6885a52e','#bfd4b500','#dfd4a50a','#d4caa219','#d29b6255','#263e78a3'];
@@ -45,9 +45,7 @@ function sleep(){if(s.sleeping)return;s.sleeping=true;keys.clear();$('sleepText'
 function wake(){if($('film').hidden&&s.started)return;$('video').pause();$('film').hidden=true;s.started=true;document.body.classList.add('playing');$('startScreen').hidden=true;$('eyelids').classList.add('closed');$('hud').hidden=false;$('hint').hidden=false;if(matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0)$('touchControls').hidden=false;enter(dorm,true);$('dayTint').style.background=tones[0];loadWorld();setTimeout(()=>{$('eyelids').classList.remove('closed');toast('05:50 · 起床铃要 6:25 才响。')},700);$('game').focus()}
 $('startButton').onclick=async()=>{try{audioStart()}catch{}$('startScreen').hidden=true;$('film').hidden=false;document.body.classList.add('playing');$('eyelids').classList.remove('closed');setTimeout(loadWorld,80);try{await $('video').play()}catch{wake()}};
 $('video').onended=wake;$('video').onerror=()=>{if(!$('film').hidden)wake()};
-function skipBegin(e){e.preventDefault();skipTime=performance.now();skipTimer=setInterval(()=>{let f=Math.min(1,(performance.now()-skipTime)/1100);$('skipProgress').style.width=f*100+'%';if(f===1){skipEnd();wake()}},30)}
-function skipEnd(){clearInterval(skipTimer);$('skipProgress').style.width='0'}
-$('skipFilm').onpointerdown=skipBegin;$('skipFilm').onpointerup=skipEnd;$('skipFilm').onpointerleave=skipEnd;$('skipFilm').onkeydown=e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat)skipBegin(e)};$('skipFilm').onkeyup=skipEnd;
+$('skipFilm').onclick=e=>{e.preventDefault();wake()};
 function modal(){return s.inBed||document.querySelector('dialog[open]')}
 function interact(){if(s.started&&!s.sleeping&&!modal()&&near)near.fn()}
 $('action').onclick=interact;$('touchAction').onclick=interact;
