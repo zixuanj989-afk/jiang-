@@ -5,9 +5,9 @@ const source=new URL('../art-source/',import.meta.url).pathname;
 const out=new URL('../dist/assets/',import.meta.url).pathname;
 const scenes=['dorm','canteen','class','library','court','pond'];
 fs.mkdirSync(new URL('../art-source/',import.meta.url),{recursive:true});
-for(const name of scenes)await sharp(source+name+'.png').webp({quality:96}).toFile(out+name+'-v3.webp');
+for(const name of scenes)fs.writeFileSync(out+name+'-v3.webp',await sharp(source+name+'.png').webp({quality:96}).toBuffer(),{flush:true});
 // Normalize the generated sprite grid to fixed, aligned cells; never enlarge source detail.
-const sprite=source+'walk-original.png';
+const sprite=source+'walk-cleaned.png';
 
 const xs=[25,180,337,491,641,789,944,1095,1254],ys=[4,170,318,465,617,768,917,1069,1254],composite=[];
 for(let row=0;row<8;row++)for(let col=0;col<8;col++){
@@ -16,5 +16,5 @@ for(let row=0;row<8;row++)for(let col=0;col<8;col++){
  const width=x1-x0+1,height=y1-y0+1,scale=Math.min(1,144/height,144/width),w=Math.round(width*scale),h=Math.round(height*scale);
  const input=await sharp(sprite).extract({left:region.left+x0,top:region.top+y0,width,height}).resize(w,h).png().toBuffer();composite.push({input,left:col*160+Math.round((160-w)/2),top:row*160+150-h});
 }
-await sharp({create:{width:1280,height:1280,channels:4,background:'#00000000'}}).composite(composite).png().toFile(out+'walk.png');
+fs.writeFileSync(out+'walk.png',await sharp({create:{width:1280,height:1280,channels:4,background:'#00000000'}}).composite(composite).png().toBuffer(),{flush:true});
 console.log('Imported six native-resolution scenes and aligned 64-frame walking atlas.');
