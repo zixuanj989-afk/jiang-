@@ -51,7 +51,14 @@ function interact(){if(s.started&&!s.sleeping&&!modal()&&near)near.fn()}
 $('action').onclick=interact;$('touchAction').onclick=interact;
 window.addEventListener('keydown',e=>{if(s.inBed&&s.started&&!s.sleeping&&e.key.toLowerCase()==='e'&&!document.querySelector('dialog[open]')){e.preventDefault();$('getUp').click();return}if(modal()||!s.started||s.sleeping)return;let k=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' ','e','m'].includes(k))e.preventDefault();if(k==='e'&&!e.repeat)interact();else if(k==='m'&&!e.repeat)openMap();else if(k===' ')follow();else keys.add(k)});
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());document.addEventListener('visibilitychange',()=>{keys.clear();if(ac){if(document.hidden)ac.suspend();else if(s.started&&!s.muted)ac.resume().catch(()=>{})}});
-document.querySelectorAll('[data-key]').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();keys.add(b.dataset.key.toLowerCase());b.setPointerCapture(e.pointerId)};b.onpointerup=b.onpointercancel=()=>keys.delete(b.dataset.key.toLowerCase())});
+function nudge(key){let dx=key==='arrowright'?1:key==='arrowleft'?-1:0,dy=key==='arrowdown'?1:key==='arrowup'?-1:0;if(!s.started||s.sleeping||modal())return;if(s.room){let p=s.rp,v=1.6;if(!indoorBlocked(p.x+dx*v,p.y))p.x+=dx*v;if(!indoorBlocked(p.x,p.y+dy*v))p.y+=dy*v}else{let p=s.p,v=2.2;if(!blocked(p.x+dx*v,p.y))p.x+=dx*v;if(!blocked(p.x,p.y+dy*v))p.y+=dy*v}}
+document.querySelectorAll('[data-key]').forEach(b=>{
+ const key=b.dataset.key.toLowerCase(),press=e=>{e.preventDefault();e.stopPropagation();keys.add(key);b.classList.add('pressed');if(e.pointerId!==undefined&&b.setPointerCapture)try{b.setPointerCapture(e.pointerId)}catch{}},release=e=>{e?.preventDefault();keys.delete(key);b.classList.remove('pressed')};
+ b.addEventListener('pointerdown',press);b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);b.addEventListener('lostpointercapture',release);
+ b.addEventListener('touchstart',press,{passive:false});b.addEventListener('touchend',release,{passive:false});b.addEventListener('touchcancel',release,{passive:false});
+ b.onclick=e=>{e.preventDefault();nudge(key)};
+});
+$('touchAction').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();interact()},{passive:false});
 $('game').addEventListener('pointerdown',e=>{if(e.target.closest('button,dialog')||!s.started||s.room||s.sleeping)return;drag={x:e.clientX,y:e.clientY};$('game').setPointerCapture(e.pointerId)});
 $('game').addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>1){s.cam.follow=false;s.cam.x=Math.max(0,Math.min(1080,s.cam.x-dx/(8*s.zoom)));s.cam.y=Math.max(0,Math.min(1476,s.cam.y-dy/(8*s.zoom)))}drag.x=e.clientX;drag.y=e.clientY});
 $('game').addEventListener('pointerup',()=>drag=null);$('game').addEventListener('pointercancel',()=>drag=null);

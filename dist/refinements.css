@@ -7,3 +7,8 @@
 #bedView button{margin-top:14px;background:#253d4dea;border:1px solid #bcc8b6;padding:14px 22px;white-space:nowrap;letter-spacing:2px}
 #hud{position:relative;z-index:9;pointer-events:none}#hud button{pointer-events:auto}
 .actor.npc{transition:opacity 1s}.actor.npc.resting img{animation:none}
+#touchControls{z-index:18;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));bottom:max(74px,calc(env(safe-area-inset-bottom) + 58px));user-select:none;-webkit-user-select:none}
+.dpad{grid-template-columns:repeat(3,56px);gap:7px}.dpad button,#touchAction{width:56px;height:56px;min-width:56px;min-height:56px;touch-action:none;-webkit-tap-highlight-color:transparent;font-size:22px;border-width:1px}
+.dpad button.pressed,.dpad button:active,#touchAction:active{background:#8fa9a6cc;transform:scale(.94)}
+#touchAction{width:66px;height:66px;font-size:20px}#action{z-index:17}
+@media(max-width:380px){.dpad{grid-template-columns:repeat(3,50px);gap:5px}.dpad button{width:50px;height:50px;min-width:50px;min-height:50px}#touchAction{width:62px;height:62px;min-width:62px;min-height:62px}}
