@@ -5,7 +5,7 @@ import * as world from '../dist/world-data.js';
 import {direction,directions} from '../dist/renderer.js';
 import {findPath,prepareNavigation} from '../dist/navigation.js';
 const require=createRequire(import.meta.url);
-const {JSDOM}=require(process.env.JZ_TEST_DEPS||'/workspace/scratch/c28f93341fd5/qa-deps/node_modules/jsdom');
+const {JSDOM}=require(process.env.JZ_TEST_DEPS||'jsdom');
 const root=new URL('../dist/',import.meta.url);
 const html=fs.readFileSync(new URL('index.html',root),'utf8');
 const dom=new JSDOM(html,{url:'https://example.test/',runScripts:'outside-only',pretendToBeVisual:true});
@@ -22,7 +22,7 @@ Object.defineProperty(w.HTMLImageElement.prototype,'src',{get:imageSrc.get,set(v
 w.fetch=async path=>({ok:true,text:async()=>fs.readFileSync(new URL(path,root),'utf8')});
 Object.assign(w,world);
 Object.assign(w,{direction,directions,findPath,prepareNavigation,loadArt:async()=>true,drawWorld:()=>{},drawRoomForeground:()=>{},recordFrame:()=>{}});
-const js=fs.readFileSync(new URL('app.js',root),'utf8').replace(/^import .*?;\n/gm,'');
+const js=fs.readFileSync(new URL('app.js',root),'utf8').replace(/^import .*?;\r?\n/gm,'');
 w.eval(js+'\nwindow.testAPI={s,enter,enterPlace,exitRoom,phase,wake,sleep,bed,roomConfig,indoorBlocked,follow,frame,keys,setRoute:(path)=>{route=path;tapTarget=route.shift()},getTarget:()=>tapTarget};');
 const a=w.testAPI,find=id=>world.buildings.find(b=>b[0]===id);
 assert.equal(direction(1,0),'right');assert.equal(direction(-1,-1),'backLeft');assert.equal(direction(1,1),'frontRight');
@@ -66,5 +66,24 @@ const dest=find('canteen2'),target={x:dest[2]+dest[4]/2,y:dest[3]+dest[5]+9};a.s
 for(let i=0;i<15000&&a.getTarget();i++){now+=16;a.frame(now)}
 assert(Math.hypot(a.s.p.x-target.x,a.s.p.y-target.y)<5,'automatic walk reaches canteen without stuck waypoint '+JSON.stringify({position:a.s.p,target,next:a.getTarget()}));
 assert.equal(w.document.getElementById('startButton').disabled,false,'preload completes');
+// Hold one key across frames: movement must be time-based, including slow frames.
+let clearStart;
+for(let y=100;y<1400&&!clearStart;y+=10)for(let x=100;x<980;x+=10){
+ if(Array.from({length:43},(_,i)=>!world.blocked(x+i-21,y)).every(Boolean)){clearStart={x,y};break}
+}
+assert(clearStart,'open road segment for speed checks');
+a.s.room=null;a.s.started=true;a.s.inBed=false;a.s.sleeping=false;a.setRoute([]);
+for(const hz of [60,30,10,5])for(const [key,sign,heading]of [['d',1,'right'],['a',-1,'left']]){
+ a.keys.clear();Object.assign(a.s.p,clearStart);now+=1000;a.frame(now);
+ w.dispatchEvent(new w.KeyboardEvent('keydown',{key}));
+ for(let i=0;i<hz/5;i++){now+=1000/hz;a.frame(now)}
+ assert(Math.abs(a.s.p.x-clearStart.x-sign*19.2)<.001,`${hz} fps: outdoor speed stays 96 units/s`);
+ assert.equal(a.s.p.dir,heading,'body heading follows movement');
+ w.dispatchEvent(new w.KeyboardEvent('keyup',{key}));
+ const stopped=a.s.p.x;now+=100;a.frame(now);assert.equal(a.s.p.x,stopped,'keyup stops movement');
+}
+w.dispatchEvent(new w.KeyboardEvent('keydown',{key:'d'}));w.dispatchEvent(new w.Event('blur'));
+assert.equal(a.keys.size,0,'losing focus clears held keys');
+console.log('PASS: continuous left/right movement, time-based outdoor speed, key release and focus-loss stop.');
 console.log('PASS: startup from bed; six visits; monotonic time; night routine reset; 30-second sleep; keyboard movement; stationary-player camera drag; recenter; '+world.buildings.filter(world.kindFor).length+' reachable entrances; complete local assets; true SVG paths.');
 dom.window.close();
